@@ -186,7 +186,7 @@ function SkillsOverview({
     { label: "Skill数", value: skills.length, hint: `${agg.usedCount}件が呼び出し済み` },
     { label: "累計呼び出し", value: agg.totalCalls },
     { label: "未使用", value: agg.neverUsed.length, hint: agg.neverUsed.length > 0 ? "Agentに読み込まれたことがありません" : "すべて使用済み" },
-    { label: "未解決の呼び出し", value: agg.missingCalls, hint: missing.length > 0 ? `${missing.length}件の存在しないSkill` : "无" },
+    { label: "未解決の呼び出し", value: agg.missingCalls, hint: missing.length > 0 ? `${missing.length}件の存在しないSkill` : "なし" },
   ];
 
   return (
@@ -231,7 +231,7 @@ function SkillsOverview({
                   />
                 </span>
                 <span className="w-16 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                  {s.calls} 次
+                  {s.calls}回
                 </span>
               </button>
             ))}
@@ -362,7 +362,7 @@ export default function SkillsPage() {
     setUploading(true);
     try {
       const r = await api.uploadSkill(file, overwrite);
-      toast.success(`Skillをインストールしました: ${r.name}（${r.files} 个文件）`);
+      toast.success(`Skillをインストールしました: ${r.name}（${r.files}個のファイル）`);
       load();
     } catch (e) {
       const msg = (e as Error).message;
@@ -529,7 +529,7 @@ export default function SkillsPage() {
     setSaving(true);
     try {
       await api.writeSkillFile(selected.skill, selected.path, fileContent);
-      toast.success("已保存");
+        toast.success("保存しました");
       setDirty(false);
     } catch (e) {
       toast.error("保存に失敗しました: " + (e as Error).message);
@@ -543,7 +543,7 @@ export default function SkillsPage() {
     setDetailMcps(next);
     try {
       await api.updateSkillMeta(skillName, { mcps: next });
-      toast.success(`${mcpOn ? "关联" : "取消关联"}「${mcpName}」`);
+      toast.success(`${mcpOn ? "関連付け" : "関連付けを解除"}「${mcpName}」`);
       load();
     } catch (e) {
       // roll back on error
@@ -556,7 +556,7 @@ export default function SkillsPage() {
     const on = (visibility[skillName] ?? []).includes(agentId);
     try {
       await api.toggleSkillVisibility(agentId, skillName, !on);
-      toast.success(`${on ? "取消" : "授予"}「${agentName}」可见`);
+      toast.success(`${on ? "公開を解除" : "公開を許可"}「${agentName}」`);
       const ids = await api.skillVisibility(skillName);
       setVisibility((v) => ({ ...v, [skillName]: ids }));
     } catch (e) {
@@ -646,7 +646,7 @@ export default function SkillsPage() {
                   onClick={(e) => { e.stopPropagation(); startCreate(skill, node.path, "file"); }}>
                   <FilePlusIcon className="size-3 text-muted-foreground" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-5" title="ファイルを新規作成夹"
+                <Button size="icon" variant="ghost" className="size-5" title="フォルダーを新規作成"
                   onClick={(e) => { e.stopPropagation(); startCreate(skill, node.path, "dir"); }}>
                   <FolderPlusIcon className="size-3 text-muted-foreground" />
                 </Button>
@@ -713,7 +713,7 @@ export default function SkillsPage() {
             <PopoverTrigger asChild>
               <Button size="sm" variant="outline" className="ml-auto">
                 <AlertTriangleIcon className="size-3.5 text-amber-500" />
-                {missing.length} 个未解決の呼び出し
+                {missing.length}件の未解決の呼び出し
               </Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-80">
@@ -724,7 +724,7 @@ export default function SkillsPage() {
                 {missing.map((m) => (
                   <div key={m.skill} className="flex items-center gap-2 text-sm">
                     <code className="min-w-0 flex-1 truncate font-mono text-xs" title={m.skill}>{m.skill}</code>
-                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{m.calls} 次</span>
+                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{m.calls}回</span>
                     <span className="shrink-0 text-xs text-muted-foreground">{fmtTime(m.last_used)}</span>
                   </div>
                 ))}
@@ -790,7 +790,7 @@ export default function SkillsPage() {
                       {s.calls > 0 && (
                         <span
                           className="shrink-0 rounded bg-muted px-1 text-[10px] tabular-nums text-muted-foreground"
-                          title={`被调用 ${s.calls} 次 · 最近 ${fmtTime(s.last_used)}`}
+      title={`${s.calls}回呼び出し · 最終利用: ${fmtTime(s.last_used)}`}
                         >
                           {s.calls}
                         </span>
@@ -803,11 +803,11 @@ export default function SkillsPage() {
                           onClick={(e) => { e.stopPropagation(); startCreate(s.name, "", "file"); }}>
                           <FilePlusIcon className="size-3 text-muted-foreground" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="size-5" title="ファイルを新規作成夹"
+                        <Button size="icon" variant="ghost" className="size-5" title="フォルダーを新規作成"
                           onClick={(e) => { e.stopPropagation(); startCreate(s.name, "", "dir"); }}>
                           <FolderPlusIcon className="size-3 text-muted-foreground" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="size-5" title="删除 Skill"
+                        <Button size="icon" variant="ghost" className="size-5" title="Skillを削除"
                           onClick={(e) => { e.stopPropagation(); setPendingDelete({ kind: "skill", skill: s.name }); }}>
                           <Trash2Icon className="size-3 text-destructive" />
                         </Button>
@@ -895,14 +895,14 @@ export default function SkillsPage() {
                     <p className="text-xs text-muted-foreground">呼び出し詳細を読み込み中…</p>
                   ) : usageCalls.length > 0 ? (
                     <div className="rounded-md border">
-                      <div className="border-b px-2 py-1 text-xs text-muted-foreground">最近 {usageCalls.length} 次调用</div>
+          <div className="border-b px-2 py-1 text-xs text-muted-foreground">直近{usageCalls.length}回の呼び出し</div>
                       <div className="max-h-56 overflow-y-auto">
                         {usageCalls.map((c, i) => (
                           <div key={`${c.ts}-${i}`} className="flex items-center gap-2 border-b px-2 py-1 text-xs last:border-b-0">
                             <span className="tabular-nums text-muted-foreground">{fmtTime(c.ts)}</span>
                             <Badge variant="outline" className="font-normal">{c.agent_key || "—"}</Badge>
                             <span className="ml-auto text-muted-foreground">
-                              {c.task_id > 0 ? `任务 #${c.task_id}` : c.session_id ? "チャットセッション" : "—"}
+          {c.task_id > 0 ? `タスク #${c.task_id}` : c.session_id ? "チャットセッション" : "—"}
                             </span>
                           </div>
                         ))}
@@ -970,7 +970,7 @@ export default function SkillsPage() {
                 </Button>
               </div>
               {fileLoading ? (
-                <p className="text-xs text-muted-foreground">加载中…</p>
+        <p className="text-xs text-muted-foreground">読み込み中…</p>
               ) : (
                 <Textarea
                   className="flex-1 resize-none font-mono text-xs"
@@ -989,8 +989,8 @@ export default function SkillsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {pendingDelete?.kind === "skill" && `Skill「${pendingDelete.skill}」を削除しますか？`}
-              {pendingDelete?.kind === "dir" && `フォルダーを削除「${pendingDelete.path}」を削除しますか？`}
-              {pendingDelete?.kind === "file" && `ファイルを削除「${pendingDelete.path}」を削除しますか？`}
+              {pendingDelete?.kind === "dir" && `フォルダー「${pendingDelete.path}」を削除しますか？`}
+              {pendingDelete?.kind === "file" && `ファイル「${pendingDelete.path}」を削除しますか？`}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDelete?.kind === "skill"
@@ -1001,18 +1001,18 @@ export default function SkillsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>キャンセル</AlertDialogCancel>
             <AlertDialogAction
               disabled={deleting}
               onClick={(e) => { e.preventDefault(); void runPendingDelete(); }}
             >
-              {deleting ? "削除中…" : "删除"}
+              {deleting ? "削除中…" : "削除"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Skillを新規作成 对话框 ── */}
+      {/* ── Skill新規作成ダイアログ ── */}
       <Sheet open={newOpen} onOpenChange={setNewOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 data-[side=right]:sm:max-w-xl">
           <SheetHeader className="px-4 pt-4">
@@ -1030,7 +1030,7 @@ export default function SkillsPage() {
                 )}
               </TabsTrigger>
               <TabsTrigger value="visibility">
-                可见性
+                公開範囲
                 {newVisibility.length > 0 && (
                   <span className="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] leading-none text-primary-foreground">
                     {newVisibility.length}
@@ -1042,12 +1042,12 @@ export default function SkillsPage() {
             {/* 基本情報 */}
             <TabsContent value="basic" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 pt-4 data-[state=inactive]:hidden">
               <div className="grid gap-1.5">
-                <Label htmlFor="sk-name">名称 <span className="text-destructive">*</span></Label>
+                <Label htmlFor="sk-name">名前 <span className="text-destructive">*</span></Label>
                 <Input id="sk-name" placeholder="sqli-deepdive" value={newName} onChange={(e) => setNewName(e.target.value)} />
                 <p className="text-muted-foreground text-xs">小文字・数字・ハイフンを使用（1～64文字）</p>
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="sk-desc">描述 <span className="text-destructive">*</span></Label>
+                <Label htmlFor="sk-desc">説明 <span className="text-destructive">*</span></Label>
                 <Textarea id="sk-desc" rows={2} className="resize-none"
                   placeholder="Skillの役割と使用する場面を入力してください。"
                   value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
@@ -1066,7 +1066,7 @@ export default function SkillsPage() {
                 <Label htmlFor="sk-inst">本文 <span className="text-muted-foreground text-xs font-normal">（空欄の場合はひな形を自動生成）</span></Label>
                 <Textarea id="sk-inst"
                   className="min-h-40 flex-1 resize-none font-mono text-sm leading-relaxed"
-                  placeholder={"## 执行方法\n\n1. まずエラーを確認\n2. ブラインドインジェクションの種類を特定\n\nスクリプトはscripts/ディレクトリに配置します。"}
+                   placeholder={"## 执行方法\n\n1. まずエラーを確認\n2. ブラインドインジェクションの種類を特定\n\nスクリプトはscripts/ディレクトリに配置します。"}
                   value={newInst} onChange={(e) => setNewInst(e.target.value)} />
               </div>
             </TabsContent>
@@ -1093,7 +1093,7 @@ export default function SkillsPage() {
               )}
             </TabsContent>
 
-            {/* 可见性 */}
+            {/* 公開範囲 */}
             <TabsContent value="visibility" className="overflow-y-auto px-4 pb-4 pt-4 data-[state=inactive]:hidden">
               <p className="mb-3 text-xs text-muted-foreground">選択したAgentは作成後にこのSkillを利用できます。</p>
               {agents.length === 0 ? (
@@ -1117,8 +1117,8 @@ export default function SkillsPage() {
           </Tabs>
 
           <SheetFooter className="flex-row justify-end gap-2 border-t px-4 py-3">
-            <Button variant="outline" onClick={() => setNewOpen(false)}>取消</Button>
-            <Button onClick={createNewSkill} disabled={creatingSkill}>{creatingSkill ? "创建中…" : "创建"}</Button>
+            <Button variant="outline" onClick={() => setNewOpen(false)}>キャンセル</Button>
+            <Button onClick={createNewSkill} disabled={creatingSkill}>{creatingSkill ? "作成中…" : "作成"}</Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>

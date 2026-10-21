@@ -46,15 +46,15 @@ const THINKING_TYPES: { value: string; label: string }[] = [
 ];
 // 输出上限用哪个请求字段名（仅 openai 形式有意义）。NONE ↔ "" 走同一套哨兵转换。
 const MAX_TOKENS_FIELDS: { value: string; label: string }[] = [
-  { value: NONE, label: "max_tokens（默认）" },
+  { value: NONE, label: "max_tokens（デフォルト）" },
   { value: "max_completion_tokens", label: "max_completion_tokens" },
 ];
 // 另外两种形式各自定死了字段名，选项对它们无意义，说明文案里直接讲清楚。
 const MAX_TOKENS_FIELD_HINTS: Record<string, string> = {
   openai:
-    "上限发哪个键。max_tokens 是默认，绝大多数兼容网关只认它；OpenAI 官方推理モデル（o 系列 / GPT-5）反过来只认 max_completion_tokens，收到 max_tokens 会直接报 unsupported_parameter。",
-  anthropic: "仅 openai 形式可选。Anthropic 的字段名固定为 max_tokens。",
-  "openai-responses": "仅 openai 形式可选。Responses API 的字段名固定为 max_output_tokens。",
+    "上限に使用するリクエストフィールド名です。通常はmax_tokensを使用します。OpenAI公式の推論モデル（oシリーズ / GPT-5）ではmax_completion_tokensのみ対応しており、max_tokensを送るとunsupported_parameterエラーになります。",
+  anthropic: "openai形式でのみ選択できます。Anthropicではフィールド名はmax_tokensに固定されています。",
+  "openai-responses": "openai形式でのみ選択できます。Responses APIではフィールド名はmax_output_tokensに固定されています。",
 };
 const EFFORT_LEVELS: { value: string; label: string }[] = [
   { value: NONE, label: "送信しない（デフォルト）" },
@@ -130,7 +130,7 @@ function PoolSheet({
       await api.setSettings(patch);
       await onReload();
       if (patch.llm_pool_enabled !== undefined) {
-        toast.success(patch.llm_pool_enabled ? "已有効 LLM 轮询" : "已無効 LLM 轮询");
+        toast.success(patch.llm_pool_enabled ? "LLMローテーションを有効にしました" : "LLMローテーションを無効にしました");
       } else {
         toast.success("フォールバック設定を更新しました");
       }
@@ -165,7 +165,7 @@ function PoolSheet({
             <ZapIcon className="size-4" /> LLMローテーション · フェイルオーバー
           </SheetTitle>
           <SheetDescription>
-            有効后，<b>モデルを指定していない</b>Agentは、現在の設定が利用できない場合（残高不足 / Key無効 / レート制限 /
+            有効にすると、<b>モデルを指定していない</b>Agentは、現在の設定が利用できない場合（残高不足 / Key無効 / レート制限 /
             サービス障害）に次の設定へ自動的に切り替わります。
           </SheetDescription>
         </SheetHeader>
@@ -174,13 +174,13 @@ function PoolSheet({
           <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
             <div className="grid gap-0.5">
               <Label className="text-sm">ローテーションを有効にする</Label>
-              <p className="text-muted-foreground text-xs">默认無効。無効时始终只用有効配置，失败即失败。</p>
+              <p className="text-muted-foreground text-xs">デフォルトは無効です。無効の場合は有効な設定のみを使用し、失敗時はそのままエラーになります。</p>
             </div>
             <Switch
               checked={enabled}
               disabled={busy}
               onCheckedChange={(v) => void toggle({ llm_pool_enabled: v })}
-              aria-label="LLM 轮询开关"
+              aria-label="LLMローテーションの切り替え"
             />
           </div>
 
@@ -190,15 +190,15 @@ function PoolSheet({
                 <div className="grid gap-0.5">
                   <Label className="text-sm">モデル指定時もフォールバックを使用</Label>
                   <p className="text-muted-foreground text-xs">
-                    默认無効：Agent 或任务指定了某个配置就只用它，失败即失败（不会悄悄换成别的モデル）。
-                    有効后，指定的配置失败时也会回落到下面的轮询链。
+                    デフォルトは無効です。Agentまたはタスクで設定を指定した場合、その設定のみを使用します。失敗しても別のモデルには切り替わりません。
+                    有効にすると、指定した設定が失敗した場合も、下記のローテーション順に従って切り替えます。
                   </p>
                 </div>
                 <Switch
                   checked={pool?.bind_fallback ?? false}
                   disabled={busy}
                   onCheckedChange={(v) => void toggle({ llm_pool_bind_fallback: v })}
-                  aria-label="绑定配置失败兜底开关"
+                  aria-label="指定した設定の失敗時にローテーションする"
                 />
               </div>
 
@@ -254,7 +254,7 @@ function PoolSheet({
                               variant="ghost"
                               className="size-7"
                               aria-label="すぐに復元"
-                              title="すぐに復元：清除熔断，下次调用重试该配置"
+                              title="すぐに再試行：サーキットブレーカーを解除し、次回の呼び出しでこの設定を試します"
                               onClick={() => void recover(m.profile_id)}
                             >
                               <RotateCcwIcon className="size-3.5" />
@@ -282,9 +282,8 @@ function PoolSheet({
               </div>
 
               <div className="rounded-lg border border-dashed p-3 text-muted-foreground text-xs leading-relaxed">
-                有効配置恒为第 1 顺位，其余按优先级从高到低（在各配置里设置）。某个配置失败后进入クールダウン （60s → 5min →
-                30分）に入り、その間はスキップされます。復帰後は自動的に再び使用されます。現在のリクエストがコンテキストウィンドウに収まらない設定もスキップされます。モデルを指定したAgent
-                与任务默认ローテーション対象外。
+                有効な設定は常に最優先です。それ以外は各設定の優先度順に試します。設定が失敗するとクールダウン（60秒 → 5分 →
+                30分）に入り、その間はスキップされます。復帰後は自動的に再び使用されます。現在のリクエストがコンテキストウィンドウに収まらない設定もスキップされます。モデルを指定したAgentとタスクは、デフォルトではローテーションの対象外です。
               </div>
             </>
           )}
@@ -407,7 +406,7 @@ function ProfileSheet({
         toast.success(`接続に成功しました · ${r.latency_ms ?? "?"}ms · ${r.model ?? model}`, {
           description: r.reply ? `応答: ${r.reply}` : undefined,
         });
-      else toast.error(`接続に失敗しました：${r.error ?? "未知"}`);
+      else toast.error(`接続に失敗しました：${r.error ?? "不明"}`);
     } catch (e) {
       toast.error(`テストでエラーが発生しました：${(e as Error).message}`);
     } finally {
@@ -446,8 +445,8 @@ function ProfileSheet({
         session_header_key: sessionHeaderKey.trim(),
         retry,
       });
-      if (isNew) toast.success(`作成しました: ${name.trim()}（在卡片上「设为有効」以启用）`);
-      else toast.success(profile?.is_default ? "保存しました，有効配置即时生效，无需重启" : "保存しました");
+      if (isNew) toast.success(`作成しました: ${name.trim()}（カードの「有効にする」から有効化してください）`);
+      else toast.success(profile?.is_default ? "保存しました。有効な設定にはすぐ反映され、再起動は不要です" : "保存しました");
       onSaved(String(id));
       onOpenChange(false);
     } catch (e) {
@@ -474,8 +473,8 @@ function ProfileSheet({
           </SheetTitle>
           <SheetDescription>
             {isNew
-              ? "新建后不会自动有効，请在卡片上「设为有効」以启用。"
-              : "修改后点击保存；有効配置保存后对全部 Agent 立即生效。"}
+              ? "新規作成した設定は自動で有効になりません。カードの「有効にする」から有効化してください。"
+              : "変更後に保存してください。有効な設定にはすべてのAgentで直ちに反映されます。"}
           </SheetDescription>
         </SheetHeader>
 
@@ -494,7 +493,7 @@ function ProfileSheet({
               <Label>形式</Label>
               <Select value={format} onValueChange={(v) => setFormat(v as "anthropic" | "openai" | "openai-responses")}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择形式" />
+                  <SelectValue placeholder="形式を選択" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="anthropic">Anthropic</SelectItem>
@@ -526,7 +525,7 @@ function ProfileSheet({
                     className="shrink-0"
                     disabled={loadingModels}
                     onClick={loadModels}
-                    title="从 API 加载可用モデル"
+                    title="APIから利用可能なモデルを読み込む"
                   >
                     {loadingModels ? <Loader2Icon className="animate-spin" /> : <RefreshCwIcon />}
                   </Button>
@@ -573,7 +572,7 @@ function ProfileSheet({
               onChange={(e) => setProxy(e.target.value)}
             />
             <p className="text-muted-foreground text-xs">
-              LLMの送信リクエストのみこのProxyを経由します。http/https/socks5に対応し、ユーザー名とパスワードを指定できます（例: 
+              LLMの送信リクエストのみこのProxyを経由します。http/https/socks5に対応し、ユーザー名とパスワードを指定できます（例:
               socks5://user:pass@host:port，密码含特殊字符需 URL 编码）。空欄の場合、Proxyを使用せず直接接続します）。
             </p>
           </div>
@@ -583,12 +582,12 @@ function ProfileSheet({
             <Input
               id="p-session-header"
               className="font-mono"
-              placeholder="如 x-session-id（空欄の場合は送信しません）"
+              placeholder="例: x-session-id（空欄の場合は送信しません）"
               value={sessionHeaderKey}
               onChange={(e) => setSessionHeaderKey(e.target.value)}
             />
             <p className="text-muted-foreground text-xs">
-              ヘッダー名を指定すると、各リクエストにHTTPヘッダーを付与します。値には<b>当前会话的 session id</b>（チャットセッションは例: 
+              ヘッダー名を指定すると、各リクエストにHTTPヘッダーを付与します。値には<b>現在のセッションID</b>（チャットセッションの例:
               conv-12、Workerは例:  exp3-worker-i87）。session-idヘッダーに基づくプロンプトキャッシュや
               スティッキールーティングを行うゲートウェイで使用します。同じセッションでは値が維持され、別セッションでは異なる値になります。空欄の場合は送信しません。
             </p>
@@ -639,7 +638,7 @@ function ProfileSheet({
                   ローテーション優先度
                 </Label>
                 <p className="text-muted-foreground text-xs">
-                  数字越大越先被选中；有効配置恒为第 1 顺位，与本值无关。相同优先级的配置会轮流打头，天然分摊额度。
+                  数値が大きい設定ほど先に選ばれます。有効な設定は常に最優先で、この値は適用されません。同じ優先度の設定は順番に先頭となり、利用量を分散します。
                 </p>
               </div>
               <Input
@@ -654,22 +653,22 @@ function ProfileSheet({
               <div className="grid gap-0.5">
                 <Label className="text-sm">ローテーション対象外</Label>
                 <p className="text-muted-foreground text-xs">
-                  有効后不会被当作故障转移目标（仍可被 Agent / 任务显式指定使用）。 适合「只给某个 Agent
-                  专用、不希望别人失败时烧掉」的昂贵配置。
+                  有効にすると、障害時の切り替え先から除外されます（Agentまたはタスクで明示的に指定すれば使用できます）。「特定のAgent専用にし、他の設定の失敗時には使わせたくない」
+                  高コストな設定に適しています。
                 </p>
               </div>
               <Switch checked={poolExclude} onCheckedChange={setPoolExclude} aria-label="ローテーション対象外" />
             </div>
             <div className="flex items-center justify-between gap-4 border-t pt-3">
               <div className="grid gap-0.5">
-                <Label className="text-sm">流式输出 · streaming</Label>
+                  <Label className="text-sm">ストリーミング出力 · streaming</Label>
                 <p className="text-muted-foreground text-xs">
-                  有効（默认）走流式 SSE，有运行中实时进度与实时 token 计数。 無効则走真·非流式（stream:false，
-                  一次性返回完整响应）——可绕开部分网关糟糕的 SSE 实现（空帧 / 思考字段丢帧），
-                  代价是失去运行中的实时进度。
+                  有効（デフォルト）の場合はSSEでストリーミングし、実行中の進捗とToken数をリアルタイムで表示します。無効の場合は非ストリーミング（stream:false）で
+                  応答全体を一度に返します。一部ゲートウェイのSSE実装に起因する問題（空フレームや思考フィールドの欠落）を回避できますが、
+                  実行中の進捗は表示されません。
                 </p>
               </div>
-              <Switch checked={streaming} onCheckedChange={setStreaming} aria-label="流式输出" />
+              <Switch checked={streaming} onCheckedChange={setStreaming} aria-label="ストリーミング出力" />
             </div>
           </div>
 
@@ -677,12 +676,12 @@ function ProfileSheet({
             <div className="flex items-center justify-between gap-4">
               <div className="grid gap-0.5">
                 <Label htmlFor="p-max-tokens" className="text-sm">
-                  输出上限 · max tokens
+                  出力上限 · max tokens
                 </Label>
                 <p className="text-muted-foreground text-xs">
-                  单次回复最多生成多少 token，随每次请求发出。0（默认）= 不发送该字段，由服务端默认值决定。
-                  这与上面的「上下文窗口」是两回事：那是モデル总容量，只在本地用来算压缩阈值。
-                  设太小会让推理モデル在思考阶段就被截断，一个字答案都出不来。
+                  1回の応答で生成するTokenの上限です。リクエストごとに送信します。0（デフォルト）の場合、このフィールドは送信せず、サーバー側のデフォルト値を使用します。
+                  上記の「コンテキストウィンドウ」とは別の設定です。コンテキストウィンドウはモデルの最大容量で、圧縮を開始する基準の計算にのみ使われます。
+                  値が小さすぎると、推論モデルの思考中に出力が打ち切られ、回答が返らない場合があります。
                 </p>
               </div>
               <Input
@@ -722,10 +721,9 @@ function ProfileSheet({
           <div className="grid gap-3 rounded-lg border p-3">
             <div className="flex items-center justify-between gap-4">
               <div className="grid gap-0.5">
-                <Label className="text-sm">思考开关 · thinking.type</Label>
+                  <Label className="text-sm">思考機能 · thinking.type</Label>
                 <p className="text-muted-foreground text-xs">
-                  控制是否发送 thinking 字段。不发送=不带该字段（兼容 MiniMax 等不支持 的モデル）；無効=发
-                  disabled；有効=发 enabled。与下面的强度互相独立。
+                  thinkingフィールドを送信するかを設定します。「送信しない」はフィールドを付けず、MiniMaxなどthinkingに対応していないモデルとの互換性を保ちます。「無効」はdisabled、「有効」はenabledを送信します。下の思考強度とは独立した設定です。
                 </p>
               </div>
               <Select value={thinkingType} onValueChange={setThinkingType}>
@@ -743,10 +741,9 @@ function ProfileSheet({
             </div>
             <div className="flex items-center justify-between gap-4 border-t pt-3">
               <div className="grid gap-0.5">
-                <Label className="text-sm">思考强度 · reasoning_effort</Label>
+                  <Label className="text-sm">思考の強度 · reasoning_effort</Label>
                 <p className="text-muted-foreground text-xs">
-                  独立的强度档位（OpenAI reasoning_effort / Anthropic output_config.effort）。 有些接口没有 thinking
-                  字段、只靠强度即可有効思考，故可单独设置、不发送思考开关。
+                  思考の強度を個別に設定します（OpenAIのreasoning_effort / Anthropicのoutput_config.effort）。thinkingフィールドがなく、強度の指定だけで思考を制御するAPIもあるため、思考機能の設定を送信しない場合でも個別に指定できます。
                 </p>
               </div>
               <Select value={effort} onValueChange={setEffort}>
@@ -770,12 +767,12 @@ function ProfileSheet({
         <div className="flex gap-2 border-t px-4 py-3">
           <Button variant="outline" onClick={testConnection} disabled={testing}>
             {testing ? <Loader2Icon className="animate-spin" /> : <PlugZapIcon />}
-            {testing ? "测试中…" : "测试连接"}
+            {testing ? "接続テスト中…" : "接続テスト"}
           </Button>
           <Button onClick={save} disabled={saving} className="flex-1">
             {saving && <Loader2Icon className="animate-spin" />}
             {!saving && (isNew ? <PlusIcon /> : <SaveIcon />)}
-            {isNew ? "新建" : "保存"}
+            {isNew ? "新規作成" : "保存"}
           </Button>
         </div>
       </SheetContent>
@@ -829,24 +826,24 @@ export default function LLMPage() {
   async function activate(id: string, name: string) {
     try {
       await api.activateLLMProfile(id);
-      toast.success(`已有効：${name}`);
+      toast.success(`有効にしました: ${name}`);
       await load();
     } catch (e) {
-      toast.error(`有効失败：${(e as Error).message}`);
+      toast.error(`有効化に失敗しました: ${(e as Error).message}`);
     }
   }
 
   async function remove(p: LLMProfile) {
     if (p.is_default) {
-      toast.error("无法删除当前有効的配置");
+      toast.error("現在有効な設定は削除できません");
       return;
     }
     try {
       await api.deleteLLMProfile(p.id);
-      toast.success(`已删除：${p.name}`);
+      toast.success(`削除しました: ${p.name}`);
       await load();
     } catch (e) {
-      toast.error(`删除失败：${(e as Error).message}`);
+      toast.error(`削除に失敗しました: ${(e as Error).message}`);
     }
   }
 
@@ -858,28 +855,28 @@ export default function LLMPage() {
         <div>
           <h1 className="font-semibold text-xl tracking-tight">LLM</h1>
           <p className="text-muted-foreground text-sm">
-            全 Agent 共享的形式 / モデル / 限速配置。点击卡片编辑，星标为当前有効配置。
+            すべてのAgentで共有する形式、モデル、レート制限の設定です。カードをクリックして編集します。星印は現在有効な設定を示します。
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => setPoolOpen(true)}>
-            <ZapIcon /> 轮询配置
+            <ZapIcon /> ローテーション設定
             {poolOn && (
               <Badge variant="outline" className="ml-1 border-emerald-500/50 text-emerald-600 dark:text-emerald-400">
-                已有効
+                有効
               </Badge>
             )}
           </Button>
           <Button size="sm" variant="outline" onClick={() => openEditor(null)}>
-            <PlusIcon /> 新建
+            <PlusIcon /> 新規作成
           </Button>
         </div>
       </div>
 
       <Tabs defaultValue="profiles" className="flex-1">
         <TabsList>
-          <TabsTrigger value="profiles">モデル配置</TabsTrigger>
-          <TabsTrigger value="retry">重试与退避</TabsTrigger>
+          <TabsTrigger value="profiles">モデル設定</TabsTrigger>
+          <TabsTrigger value="retry">再試行とバックオフ</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profiles" className="mt-4">
@@ -931,9 +928,9 @@ export default function LLMPage() {
                       <span>
                         {p.rate_per_second}/s · {p.rate_per_minute}/min
                       </span>
-                      {p.proxy && <span className="truncate">代理 {p.proxy}</span>}
+                      {p.proxy && <span className="truncate">Proxy {p.proxy}</span>}
                       {p.reasoning_effort && (
-                        <span>思考 {p.reasoning_effort === "off" ? "关" : p.reasoning_effort}</span>
+            <span>思考 {p.reasoning_effort === "off" ? "無効" : p.reasoning_effort}</span>
                       )}
                       {/* 轮询相关的两个字段只在轮询开着时才有意义，关着时不占版面 */}
                       {poolOn &&
@@ -952,12 +949,12 @@ export default function LLMPage() {
                           void activate(p.id, p.name);
                         }}
                       >
-                        {p.is_default ? "已有効" : "设为有効"}
+                        {p.is_default ? "有効" : "有効にする"}
                       </Button>
                       <Button
                         size="icon"
                         variant="outline"
-                        aria-label="删除配置"
+                        aria-label="設定を削除"
                         onClick={(e) => {
                           e.stopPropagation();
                           void remove(p);
@@ -972,7 +969,7 @@ export default function LLMPage() {
             })}
             {profiles.length === 0 && (
               <div className="col-span-full rounded-lg border border-dashed p-10 text-center text-muted-foreground text-sm">
-                还没有モデル配置，点击右上角「新建」创建第一个。
+                モデル設定はまだありません。右上の「新規作成」から追加してください。
               </div>
             )}
           </div>

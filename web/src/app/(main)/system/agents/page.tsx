@@ -167,7 +167,7 @@ function CreateAgentDialog({ onCreated }: { onCreated: (key: string) => void }) 
             <Label htmlFor="agent-key">Key</Label>
             <Input
               id="agent-key"
-              placeholder="如 research_helper"
+              placeholder="例: research_helper"
               value={key}
               onChange={(e) => setKey(e.target.value)}
               className="font-mono"

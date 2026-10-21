@@ -276,10 +276,10 @@ export default function SystemSettingsPage() {
             </CardTitle>
             <CardDescription>
               有効にすると、すべてのAgentのHTTP通信を記録Proxy経由で保存し、traffic_search / traffic_get
-              工具与代理配置（ヒント词含代理说明）。
+              ツールとProxy設定がAgentに提供されます（Agent向け指示にはProxyの説明が含まれます）。
               <br />
               無効（デフォルト）の場合、通信は記録されません。Agent
-              <b>は取得</b>できず、Agent向け指示にも<b>含まれません。設定を切り替えるとAgentを再構築し、</b>すぐに反映します。
+              <b>Proxy設定とトラフィックツールは取得できず</b>、Agent向け指示にもProxyの説明は含まれません。切り替えるとAgentを再構築し、すぐに反映します。
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-between gap-4">
@@ -305,8 +305,7 @@ export default function SystemSettingsPage() {
               デフォルトは無効です。有効にすると、脆弱性の登録時に起動するレポートAgentが既存のHTTPリクエスト／レスポンスを確認し、該当する通信を関連付けてからレポートを作成します。
               <b>パケットの確認や追加のツール呼び出しにより、Token使用量が増加します。</b>
               <br />
-              TCP、未抓包或没有匹配流量时仍可正常上报。此开关不影响トラフィックキャプチャ、人工绑定及已保存证据的查看。 对下一轮 Agent
-              有効になり、無効にすると新たな自動関連付けは直ちに停止します。
+              TCP通信、パケットを取得していない場合、または該当する通信がない場合もレポートは通常どおり作成されます。この設定はトラフィックキャプチャ、手動での関連付け、保存済み証拠の表示には影響しません。次のAgent実行から有効になり、無効にすると新たな自動関連付けは直ちに停止します。
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-between gap-4">
@@ -330,15 +329,12 @@ export default function SystemSettingsPage() {
               グローバルProxy
             </CardTitle>
             <CardDescription>
-              すべてのAgentの<b>対象通信</b>このProxy経由で外部へ接続します（送信元IPの秘匿や踏み台に使用）。対応方式: <b>http / https / socks5</b>，可带{" "}
+              すべてのAgentの<b>対象通信</b>をこのProxy経由で外部へ接続します（送信元IPの秘匿や踏み台に使用）。対応方式: <b>http / https / socks5</b>。{" "}
               <code>user:pass</code> 認証。空欄の場合は直接接続します。
               <br />
-              开启<b>トラフィックキャプチャ</b>时，它作为记录代理的<b>上游</b>（流量仍全量落库，再经此代理出网）；キャプチャが無効の場合は、Agentの
-              Agent 的 bash / WebFetch 出网。およびWebFetchの通信に直接適用します。Web検索用ProxyやLLM用Proxyとは独立しています。
+              <b>トラフィックキャプチャ</b>が有効な場合、このProxyは記録Proxyの<b>上流</b>として使われます（通信はすべて保存後にこのProxy経由で外部接続します）。キャプチャが無効な場合は、Agentのbash / WebFetchの外部接続に直接適用されます。Web検索用ProxyやLLM用Proxyとは独立しています。
               <br />
-              <b>ヒント</b>：socks5 在<b>キャプチャが無効</b>时依赖各命令行工具对 <code>ALL_PROXY</code> 的支持（curl
-              は利用できますが、一部のツールでは無視される場合があります）； 若主要用 socks5，建议开启トラフィックキャプチャ——此路径由 MITM
-              が直接接続するため、ツール側の対応に依存せず安定して動作します。
+              <b>ヒント</b>: キャプチャが無効な場合、socks5は各コマンドラインツールの<code>ALL_PROXY</code>対応に依存します（curlは利用できますが、一部のツールでは無視される場合があります）。socks5を主に使う場合はトラフィックキャプチャを有効にしてください。この経路ではMITMが直接接続します。
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
@@ -359,7 +355,7 @@ export default function SystemSettingsPage() {
               </Button>
             </div>
             <p className="text-muted-foreground text-xs">
-              {globalProxyInput.trim() ? "已配置 · 所有対象通信经此代理出网" : "未配置 · 対象通信直连出网"}
+              {globalProxyInput.trim() ? "設定済み · 対象通信はすべてこのProxy経由で接続します" : "未設定 · 対象通信は直接接続します"}
             </p>
           </CardContent>
         </Card>
@@ -371,10 +367,9 @@ export default function SystemSettingsPage() {
               操作制約の注入
             </CardTitle>
             <CardDescription>
-              有効にすると、各タスクの<b>操作约束</b>（在任务总览「操作约束」で管理するallow/deny項目）を該当するAgentの
-              的系统ヒント，用来框定探索边界（如「現在のポートのみをテスト」「総当たりを禁止」）。
+              有効にすると、各タスクの<b>操作制約</b>（タスク概要の「操作制約」で管理するallow/deny項目）を該当するAgentのシステムプロンプトに追加し、探索範囲を制限します（例: 「現在のポートのみをテスト」「総当たりを禁止」）。
               <br />
-              注入先として<b>规划者（planner）</b>と<b>执行者（worker）</b>
+              注入先として<b>Planner</b>と<b>Worker</b>
               を個別に設定できます。どちらもデフォルトで有効です。変更は次の実行から反映され、Agentの再構築は不要です。無効にすると、該当Agentには制約が渡されません。
             </CardDescription>
           </CardHeader>
@@ -439,19 +434,16 @@ export default function SystemSettingsPage() {
               Web検索
             </CardTitle>
             <CardDescription>
-              这是Web検索的<b>全体設定と検索元の設定</b>。有効にすると、<b>各Agentの設定</b>で使用するかどうかを個別に選べます
-              <b>web_search</b>（仅返回标题/链接/摘要，不抓取正文；抓取由 WebFetch 负责）。Web検索<b>不走</b>
-              记录代理，独立于トラフィックキャプチャ。
+              Web検索の<b>全体設定と検索元</b>です。有効にすると、<b>各Agentの設定</b>でweb_searchを使うか個別に選べます（タイトル、リンク、概要のみを返し、本文は取得しません。本文の取得にはWebFetchを使用します）。Web検索は記録Proxyを経由せず、トラフィックキャプチャとは独立しています。
               <br />
               検索元は<b>DuckDuckGo（ddgs）</b>（Key不要）、<b>Brave（無料プラン）</b>（Brave API Keyが必要）、{" "}
-              <b>Tavily</b>（Tavily API Keyが必要）或 <b>DeepSeek</b>（現在のLLM設定を使用）。全体設定を無効にすると、各
-              Agent 的Web検索开关不可用。
+              <b>Tavily</b>（Tavily API Keyが必要）、または<b>DeepSeek</b>（現在のLLM設定を使用）です。全体設定を無効にすると、各AgentでWeb検索を有効にできません。
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
               <Label htmlFor="web-search" className="text-sm font-normal text-muted-foreground">
-                {webSearch ? "总开关有効 · 可在各 Agent 配置里单独启用" : "無効 · 各 Agent 无法启用Web検索"}
+                {webSearch ? "有効 · 各Agentの設定で個別に有効化できます" : "無効 · 各AgentでWeb検索を有効にできません"}
               </Label>
               <Switch
                 id="web-search"
@@ -479,9 +471,9 @@ export default function SystemSettingsPage() {
                     <SelectValue placeholder="検索元を選択" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ddgs">DuckDuckGo（ddgs · 免费无 Key）</SelectItem>
-                    <SelectItem value="brave-free">Brave（免费版 · 需 Key）</SelectItem>
-                    <SelectItem value="tavily">Tavily（需 Key）</SelectItem>
+                    <SelectItem value="ddgs">DuckDuckGo（ddgs · 無料、Key不要）</SelectItem>
+                    <SelectItem value="brave-free">Brave（無料プラン · Keyが必要）</SelectItem>
+                    <SelectItem value="tavily">Tavily（Keyが必要）</SelectItem>
                     <SelectItem value="deepseek">DeepSeek（公式）</SelectItem>
                   </SelectContent>
                 </Select>
@@ -490,16 +482,13 @@ export default function SystemSettingsPage() {
 
             {webSearch && backend === "deepseek" && (
               <div className="border-border/60 bg-muted/30 flex flex-col gap-2 rounded-md border p-3">
-                <p className="text-sm font-medium">DeepSeek 公式联网搜索</p>
+                <p className="text-sm font-medium">DeepSeek公式Web検索</p>
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  この検索元は<b>現在有効なLLM設定</b>。因此它
-                  <b>仅支持 DeepSeek 公式模型</b>，且该配置<b>必须使用 anthropic 协议</b>
+                  この検索元は<b>現在有効なLLM設定</b>を使用します。<b>DeepSeek公式モデルのみ対応</b>で、この設定では<b>anthropicプロトコルが必要</b>です。
                   。DeepSeekのOpenAIプロトコルのエンドポイントはサーバー側検索に対応していません。LLM設定を切り替えると、この検索元が使えなくなる場合があります。
                 </p>
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  他の検索元と異なり、検索は<b>DeepSeek のサーバー側で実行されます</b>。検索のたびにモデル呼び出しが1回追加され、Token
-                  を消費します。検索リクエスト<b>は上記の出口Proxyを経由せず</b>，也<b>不计入流量留痕</b>；返回结果<b>只有标题和链接</b>
-                  ます（概要はありません）。本文が必要な場合はWebFetchで取得してください。
+                  他の検索元と異なり、検索は<b>DeepSeekのサーバー側で実行</b>されます。検索のたびにモデル呼び出しが1回追加され、Tokenを消費します。検索リクエスト<b>は上記の出口Proxyを経由せず</b>、トラフィック記録にも含まれません。結果には<b>タイトルとリンクのみ</b>が含まれます（概要はありません）。本文が必要な場合はWebFetchで取得してください。
                 </p>
                 <p className="text-muted-foreground text-xs leading-relaxed">
                   これらの条件を満たしているか確認してください。システムによるチェックはありません。下の「検索をテスト」ボタンで実際に検索して動作を確認できます。
@@ -511,7 +500,7 @@ export default function SystemSettingsPage() {
               <div className="flex flex-col gap-2">
                 <Label htmlFor="brave-key" className="text-sm font-normal text-muted-foreground">
                   Brave Search API Key
-                  {braveKeySet && <span className="ml-2 text-xs text-emerald-500">已配置</span>}
+                  {braveKeySet && <span className="ml-2 text-xs text-emerald-500">設定済み</span>}
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -533,7 +522,7 @@ export default function SystemSettingsPage() {
                 </div>
                 {braveNeedsKey && (
                   <p className="text-xs text-amber-500">
-                    已选择 Brave 但尚未配置 Key —— 在保存 Key 之前，搜索工具は取得启用。
+                    Braveが選択されていますが、Keyが未設定です。Keyを保存するまで検索ツールは有効になりません。
                   </p>
                 )}
                 <p className="text-muted-foreground text-xs">
@@ -546,7 +535,7 @@ export default function SystemSettingsPage() {
               <div className="flex flex-col gap-2">
                 <Label htmlFor="tavily-key" className="text-sm font-normal text-muted-foreground">
                   Tavily Search API Key
-                  {tavilyKeySet && <span className="ml-2 text-xs text-emerald-500">已配置</span>}
+                  {tavilyKeySet && <span className="ml-2 text-xs text-emerald-500">設定済み</span>}
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -568,7 +557,7 @@ export default function SystemSettingsPage() {
                 </div>
                 {webSearch && backend === "tavily" && !tavilyKeySet && (
                   <p className="text-xs text-amber-500">
-                    已选择 Tavily 但尚未配置 Key —— 在保存 Key 之前，搜索工具は取得启用。
+                    Tavilyが選択されていますが、Keyが未設定です。Keyを保存するまで検索ツールは有効になりません。
                   </p>
                 )}
                 <p className="text-muted-foreground text-xs">https://tavily.com で登録し、API Keyを取得してください。</p>
@@ -686,7 +675,7 @@ export default function SystemSettingsPage() {
             <CardDescription>
               チャット画面とタスク詳細のメインAgent入力欄で共通の設定です。選択後すぐに反映され、保存は不要です。
               <br />
-              该偏好<b>只存在本浏览器</b>，不随账号同步，换浏览器或清理站点数据后需重新设置。
+              この設定は使用中のブラウザーにのみ保存され、アカウント間で同期されません。ブラウザーの変更やサイトデータの削除後は再設定が必要です。
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center justify-between gap-4">

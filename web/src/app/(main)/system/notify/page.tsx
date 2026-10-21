@@ -292,7 +292,7 @@ export default function NotifyPage() {
           <StatTile label="チャネル" value={`${meta.stats.channels_on} / ${meta.stats.channels}`} hint="有効 / 合計" />
           <StatTile label="本日の配信数" value={String(meta.stats.sent_today)} />
           <StatTile label="送信待ち" value={String(meta.stats.pending)} />
-          <StatTile label="失败" value={String(meta.stats.failed)} tone={meta.stats.failed > 0 ? "red" : undefined} />
+          <StatTile label="失敗" value={String(meta.stats.failed)} tone={meta.stats.failed > 0 ? "red" : undefined} />
           <StatTile
             label="最古の滞留"
             value={formatBacklog(meta.stats.backlog_age_ms)}
@@ -329,11 +329,11 @@ export default function NotifyPage() {
               value={digestMin}
               onChange={(e) => setDigestMin(e.target.value)}
             />
-            <p className="text-muted-foreground text-xs">仅对「集約」模式的チャネル生效。</p>
+            <p className="text-muted-foreground text-xs">集約モードのチャネルにのみ適用されます。</p>
           </div>
           <div className="sm:col-span-2">
             <Button onClick={saveGlobal} disabled={globalSaving}>
-              保存全体設定
+              全体設定を保存
             </Button>
           </div>
         </CardContent>
@@ -353,7 +353,7 @@ export default function NotifyPage() {
               className="text-foreground/70 border-foreground/70 hover:bg-muted/60 hover:shadow-sm flex min-h-[130px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition"
             >
               <PlusIcon className="size-6" />
-              <span className="text-sm">添加チャネル</span>
+              <span className="text-sm">チャネルを追加</span>
             </button>
 
             {channels.map((ch) => (
@@ -375,12 +375,12 @@ export default function NotifyPage() {
                         checked={ch.enabled}
                         onCheckedChange={() => toggleEnabled(ch)}
                         onClick={(e) => e.stopPropagation()}
-                        aria-label="启用"
+                        aria-label="有効"
                       />
                       <Button
                         size="icon"
                         variant="outline"
-                        aria-label="删除"
+                        aria-label="削除"
                         onClick={(e) => {
                           e.stopPropagation();
                           // void 显式丢弃 Promise：removeChannel 自己 catch 并 toast，
@@ -414,7 +414,7 @@ export default function NotifyPage() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="w-full data-[side=right]:sm:max-w-lg">
           <SheetHeader>
-            <SheetTitle>{editing ? editing.name : "添加通知チャネル"}</SheetTitle>
+            <SheetTitle>{editing ? editing.name : "通知チャネルを追加"}</SheetTitle>
             <SheetDescription>
               {KIND_LABEL[form.kind] ?? form.kind}
               {defaultRate > 0 ? ` · デフォルトの送信上限 ${defaultRate}件/分` : " · 上限なし"}
@@ -446,7 +446,7 @@ export default function NotifyPage() {
                 </Select>
                 {editing && (
                   <p className="text-muted-foreground text-xs">
-                    チャネル类型不可修改——改了类型等于换一套凭据，请新建チャネル。
+                    チャネルの種類は変更できません。種類を変える場合は別の認証情報が必要になるため、新しいチャネルを作成してください。
                   </p>
                 )}
               </div>
@@ -484,12 +484,12 @@ export default function NotifyPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="realtime">リアルタイム · 每条漏洞单独发一条</SelectItem>
-                    <SelectItem value="digest">集約 · 按周期合并成一条</SelectItem>
+                    <SelectItem value="realtime">リアルタイム · 脆弱性ごとに通知</SelectItem>
+                    <SelectItem value="digest">集約 · 一定期間ごとにまとめて通知</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-muted-foreground text-xs">
-                  想做「高危リアルタイム、其余集約」就建两个チャネル：一个リアルタイム + 门槛高危，一个集約 + 不限级别。
+                  「高リスクはリアルタイム、それ以外は集約」で通知する場合は、チャネルを2つ作成します。1つ目は「リアルタイム」+「高リスク以上」、2つ目は「集約」+「すべての重要度」です。
                 </p>
               </div>
 
@@ -504,7 +504,7 @@ export default function NotifyPage() {
                   onChange={(e) => setF({ ratePerMin: e.target.value })}
                 />
                 <p className="text-muted-foreground text-xs">
-                  留空用チャネル默认值；0 表示上限なし。超限不会丢消息，只会推迟发送。
+                  空欄の場合はチャネルのデフォルト値を使用します。0は上限なしです。上限を超えたメッセージは破棄されず、送信が遅延します。
                 </p>
               </div>
 
@@ -533,7 +533,7 @@ export default function NotifyPage() {
                     <Label htmlFor="n-inc">この脆弱性種別のみ通知</Label>
                     <Textarea
                       id="n-inc"
-                      placeholder={"SQL注入\n命令执行"}
+                      placeholder={"SQLインジェクション\nコマンド実行"}
                       value={form.includeText}
                       onChange={(e) => setF({ includeText: e.target.value })}
                     />
@@ -545,7 +545,7 @@ export default function NotifyPage() {
                     <Label htmlFor="n-exc">これらの脆弱性種別を除外</Label>
                     <Textarea
                       id="n-exc"
-                      placeholder={"信息泄露"}
+                      placeholder={"情報漏えい"}
                       value={form.excludeText}
                       onChange={(e) => setF({ excludeText: e.target.value })}
                     />
@@ -576,20 +576,20 @@ export default function NotifyPage() {
                       onCheckedChange={(v) => setF({ onStatusChange: v })}
                       aria-label="ステータス変更を通知"
                     />
-                    漏洞处置状态变更时也推送（仅リアルタイム模式）
+                    脆弱性の対応ステータスが変更された場合も通知します（リアルタイムモードのみ）
                   </div>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
-                <Switch checked={form.enabled} onCheckedChange={(v) => setF({ enabled: v })} aria-label="启用" />
-                启用该チャネル
+                <Switch checked={form.enabled} onCheckedChange={(v) => setF({ enabled: v })} aria-label="有効" />
+                このチャネルを有効にする
               </div>
             </div>
 
             <div className="flex gap-2 pt-2 pb-6">
               <Button onClick={saveForm} disabled={saving}>
-                {editing ? "保存" : "添加"}
+                {editing ? "保存" : "追加"}
               </Button>
               {editing && (
                 <Button variant="outline" onClick={testChannel} disabled={testing}>

@@ -89,7 +89,7 @@ function JudgeSparkbars({ daily }: { daily: JudgeDayUsage[] }) {
         return (
           <div
             key={d.date}
-            title={`${d.date} · ${d.calls} 次 · ${fmtTokens(total)} tokens`}
+            title={`${d.date} · ${d.calls}回 · ${fmtTokens(total)} tokens`}
             className="min-w-[2px] flex-1 rounded-sm bg-violet-500/60 hover:bg-violet-500"
             style={{ height: `${h}%` }}
           />
@@ -109,20 +109,20 @@ function sdkTool(key: string, description: string): Tool {
 }
 
 const SDK_EXEC: Tool[] = [
-  sdkTool("Bash",        "在 shell 中执行命令"),
-  sdkTool("WebFetch",    "发起 HTTP/HTTPS 请求（含代理支持）"),
-  sdkTool("web_search",  "网络搜索"),
-  sdkTool("shell_open",  "开启持久 PTY 交互会话"),
-  sdkTool("shell_send",  "向交互会话发送输入"),
-  sdkTool("shell_read",  "读取交互会话输出"),
-  sdkTool("shell_close", "关闭交互会话"),
-  sdkTool("shell_list",  "列出所有交互会话"),
+  sdkTool("Bash",        "shellでコマンドを実行"),
+  sdkTool("WebFetch",    "HTTP/HTTPSリクエストを送信（Proxy対応）"),
+  sdkTool("web_search",  "Web検索"),
+  sdkTool("shell_open",  "永続PTY対話セッションを開始"),
+  sdkTool("shell_send",  "対話セッションに入力を送信"),
+  sdkTool("shell_read",  "対話セッションの出力を読み取る"),
+  sdkTool("shell_close", "対話セッションを終了"),
+  sdkTool("shell_list",  "すべての対話セッションを一覧表示"),
 ];
 
 const SDK_WRITE: Tool[] = [
-  sdkTool("Write",     "写入文件"),
-  sdkTool("Edit",      "编辑文件（精确替换）"),
-  sdkTool("MultiEdit", "批量编辑文件"),
+  sdkTool("Write",     "ファイルに書き込む"),
+  sdkTool("Edit",      "ファイルを編集（完全一致で置換）"),
+  sdkTool("MultiEdit", "複数のファイルを一括編集"),
 ];
 
 const SDK_KEYS = new Set([...SDK_EXEC, ...SDK_WRITE].map((t) => t.key));
@@ -228,7 +228,7 @@ function JudgeCard() {
       setCfg(j);
       setProfiles(ps);
     } catch (e) {
-      toast.error("加载モデルフォールバック設定の読み込みに失敗しました: " + (e as Error).message);
+      toast.error("モデルフォールバック設定の読み込みに失敗しました: " + (e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -288,7 +288,7 @@ function JudgeCard() {
           <div>
             <p className="text-sm font-semibold leading-tight">モデルフォールバック承認</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              <span className="font-medium text-foreground">インターセプト範囲</span>内で、いずれの<span className="font-medium text-foreground">インターセプトルールにも一致しない</span>コマンドのみ、モデルが意味を判定します（許可 / 手動承認 / ブロック）。
+              インターセプト範囲内で、いずれのルールにも一致しないコマンドをモデルが判定します（許可／手動承認／ブロック）。
             </p>
           </div>
         </div>
@@ -473,7 +473,7 @@ export default function InterceptPage() {
       const r = await api.interceptRules();
       setRules(r);
     } catch {
-      toast.error("加载ブロック规则失败");
+      toast.error("インターセプトルールの読み込みに失敗しました");
     } finally {
       setLoading(false);
     }
@@ -570,7 +570,7 @@ export default function InterceptPage() {
       setAllTools(tools);
       setEnabledTools(new Set(cfg.enabled_tools));
     } catch (e) {
-      toast.error("加载失败: " + (e as Error).message);
+      toast.error("読み込みに失敗しました: " + (e as Error).message);
     } finally {
       setScopeLoading(false);
     }
@@ -588,7 +588,7 @@ export default function InterceptPage() {
     setScopeSaving(true);
     try {
       await api.interceptSetToolConfig([...enabledTools]);
-      toast.success("ブロック范围已保存");
+      toast.success("適用範囲を保存しました");
       setScopeTools([...enabledTools]);
       setScopeOpen(false);
     } catch (e) {
@@ -609,9 +609,9 @@ export default function InterceptPage() {
       <div className="flex items-center gap-2.5">
         <ShieldAlertIcon className="h-5 w-5 shrink-0" />
         <div>
-          <h1 className="text-lg font-semibold leading-tight">命令ブロック</h1>
+          <h1 className="text-lg font-semibold leading-tight">コマンドインターセプト</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            工具执行前先按ブロック规则匹配；未命中的命令可交由模型兜底判定
+            ツール実行前にインターセプトルールを照合します。一致しないコマンドはモデルによるフォールバック判定に進みます。
           </p>
         </div>
       </div>
@@ -626,10 +626,10 @@ export default function InterceptPage() {
       >
         <div className="flex min-w-0 items-center gap-2 text-sm">
           <ListFilterIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="shrink-0 font-medium">ブロック范围</span>
+          <span className="shrink-0 font-medium">インターセプト範囲</span>
           {scopeTools.length === 0 ? (
             <span className="text-amber-700 dark:text-amber-500">
-              無効任何工具 — ブロック规则与模型兜底均不会生效
+              有効なツールがありません。インターセプトルールとモデル判定は適用されません。
             </span>
           ) : (
             <>
@@ -653,7 +653,7 @@ export default function InterceptPage() {
 
       <Tabs defaultValue="rules" className="flex-1">
         <TabsList>
-          <TabsTrigger value="rules">ブロック规则</TabsTrigger>
+          <TabsTrigger value="rules">インターセプトルール</TabsTrigger>
           <TabsTrigger value="judge">モデル設定</TabsTrigger>
         </TabsList>
 
@@ -710,7 +710,7 @@ export default function InterceptPage() {
                     </TableCell>
                     <TableCell>
                       <span className="text-xs text-muted-foreground">
-                        {rule.match_type === "regex" ? "正则" : "文字列"}
+                        {rule.match_type === "regex" ? "正規表現" : "文字列"}
                       </span>
                     </TableCell>
                     <TableCell className="max-w-[220px]">
@@ -765,7 +765,7 @@ export default function InterceptPage() {
           <SheetHeader className="border-b px-6 py-4">
             <SheetTitle>{editing ? "ルールを編集" : "ルールを新規作成"}</SheetTitle>
             <SheetDescription className="text-xs">
-              優先度越大越先匹配；首条命中规则生效，后续跳过
+              優先度の高い順に照合し、最初に一致したルールを適用します。一致後のルールはスキップされます。
             </SheetDescription>
           </SheetHeader>
 
@@ -778,7 +778,7 @@ export default function InterceptPage() {
               />
             </Field>
 
-            <Field label="優先度（数字越大越先匹配）">
+            <Field label="優先度（数値が大きいほど優先）">
               <Input
                 type="number"
                 value={form.priority}
@@ -788,7 +788,7 @@ export default function InterceptPage() {
 
             <Separator />
 
-            <Field label="匹配対象">
+            <Field label="照合対象">
               <Select
                 value={form.match_target}
                 onValueChange={(v) => set({ match_target: v as RuleForm["match_target"] })}
@@ -801,14 +801,14 @@ export default function InterceptPage() {
               </Select>
             </Field>
 
-            <Field label="匹配種類">
+            <Field label="照合方法">
               <Select
                 value={form.match_type}
                 onValueChange={(v) => set({ match_type: v as RuleForm["match_type"] })}
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="string">文字列包含</SelectItem>
+                  <SelectItem value="string">部分一致</SelectItem>
                   <SelectItem value="regex">正規表現</SelectItem>
                 </SelectContent>
               </Select>
@@ -831,7 +831,7 @@ export default function InterceptPage() {
 
             <Separator />
 
-            <Field label="ブロック動作">
+            <Field label="インターセプト時の動作">
               <Select
                 value={form.action}
                 onValueChange={(v) => set({ action: v as InterceptAction })}
@@ -862,7 +862,7 @@ export default function InterceptPage() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">有効审批超时</p>
+                    <p className="text-sm font-medium">承認のタイムアウトを有効にする</p>
                     <p className="text-xs text-muted-foreground">タイムアウト後は自動処理し、待機を終了します</p>
                   </div>
                   <Switch
@@ -892,7 +892,7 @@ export default function InterceptPage() {
                         <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="deny">自動拒否</SelectItem>
-                          <SelectItem value="allow">自动許可</SelectItem>
+                          <SelectItem value="allow">自動許可</SelectItem>
                         </SelectContent>
                       </Select>
                     </Field>
@@ -909,7 +909,7 @@ export default function InterceptPage() {
                 checked={form.enabled}
                 onCheckedChange={(v) => set({ enabled: v })}
               />
-              <Label htmlFor="rule-enabled" className="cursor-pointer">有効此规则</Label>
+              <Label htmlFor="rule-enabled" className="cursor-pointer">このルールを有効にする</Label>
             </div>
           </div>
 
@@ -928,10 +928,10 @@ export default function InterceptPage() {
           <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle className="flex items-center gap-2">
               <ListFilterIcon className="h-4 w-4" />
-              ブロック范围
+              インターセプト範囲
             </DialogTitle>
             <DialogDescription className="text-xs">
-              只有有効ブロック的工具才会进入规则匹配；其余工具直接許可
+              インターセプトが有効なツールのみルール照合の対象です。それ以外のツールはそのまま実行されます。
             </DialogDescription>
           </DialogHeader>
 

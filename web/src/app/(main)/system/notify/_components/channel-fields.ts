@@ -72,7 +72,7 @@ export const CHANNEL_FIELDS: Record<string, FieldDef[]> = {
         { value: "POST", label: "POST（リクエストボディあり）" },
         { value: "PUT", label: "PUT（リクエストボディあり）" },
         { value: "PATCH", label: "PATCH（リクエストボディあり）" },
-        { value: "GET", label: "GET（不リクエストボディあり）" },
+        { value: "GET", label: "GET（リクエストボディなし）" },
       ],
     },
     { key: "headers", label: "カスタムリクエストヘッダー", kind: "kv", help: "1行にKEY=VALUEで入力します。例: Authorization=Bearer xxx" },

@@ -172,7 +172,7 @@ export default function MCPPage() {
         enabled: editing ? editing.enabled : true,
         ...base,
       });
-      toast.success(editing ? "已保存" : "MCPサーバーを追加しました");
+      toast.success(editing ? "保存しました" : "MCPサーバーを追加しました");
       if (!editing) setOpen(false);
       load();
     } catch (e) {
@@ -332,9 +332,9 @@ export default function MCPPage() {
     return (
       <div className="flex flex-col gap-3 py-4">
         <div className="flex items-center justify-between">
-          <span className="text-muted-foreground text-sm">{tools.length} 个工具</span>
+          <span className="text-muted-foreground text-sm">{tools.length}個のツール</span>
           <Button size="sm" variant="outline" disabled={refreshing} onClick={refreshTools}>
-            <RefreshCwIcon className={refreshing ? "animate-spin" : ""} /> 刷新
+            <RefreshCwIcon className={refreshing ? "animate-spin" : ""} /> 更新
           </Button>
         </div>
         {toolsLoading ? (
@@ -363,7 +363,7 @@ export default function MCPPage() {
     <div className="flex flex-1 flex-col gap-4 md:gap-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">MCP</h1>
-        <p className="text-muted-foreground text-sm">外部 MCP 工具服务器 · 按 Agent 授权に公開</p>
+        <p className="text-muted-foreground text-sm">外部MCPツールサーバー · Agentごとに公開設定</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -393,12 +393,12 @@ export default function MCPPage() {
                   <Switch
                     checked={s.enabled}
                     onCheckedChange={() => toggleEnabled(s)}
-                    aria-label="启用"
+                    aria-label="有効"
                   />
                   <Button
                     size="icon"
                     variant="outline"
-                    aria-label="删除"
+                    aria-label="削除"
                     onClick={() => removeServer(s)}
                   >
                     <Trash2Icon className="text-destructive" />
@@ -408,10 +408,10 @@ export default function MCPPage() {
             </CardHeader>
             <CardContent className="grid gap-3">
               <p className="text-muted-foreground text-sm">
-                {s.tools && s.tools.length > 0 ? `${s.tools.length} 个工具` : "ツールはまだありません"}
+                {s.tools && s.tools.length > 0 ? `${s.tools.length}個のツール` : "ツールはまだありません"}
               </p>
               <div className="grid gap-2" onClick={(e) => e.stopPropagation()}>
-                <span className="text-muted-foreground text-xs">に公開性（按 Agent 授权）</span>
+                <span className="text-muted-foreground text-xs">公開範囲（Agentごとに許可）</span>
                 <div className="flex flex-wrap gap-x-4 gap-y-2">
                   {agents.map((a) => (
                     <label key={a.key} className="flex items-center gap-2 text-sm">
@@ -435,7 +435,7 @@ export default function MCPPage() {
           className="w-full data-[side=right]:sm:max-w-lg"
         >
           <SheetHeader>
-            <SheetTitle>{editing ? editing.name : "MCPを追加 服务器"}</SheetTitle>
+            <SheetTitle>{editing ? editing.name : "MCPサーバーを追加"}</SheetTitle>
             <SheetDescription>
               stdio（ローカルプロセス）またはhttp（リモートStreamable HTTP）
             </SheetDescription>

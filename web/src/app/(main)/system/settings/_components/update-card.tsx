@@ -150,7 +150,7 @@ export function UpdateCard() {
       es.close();
       setBusy(false);
       setProgress(null);
-      toast.error("启动更新に失敗しました：" + (e as Error).message);
+      toast.error("更新の開始に失敗しました：" + (e as Error).message);
     });
   };
 
@@ -158,7 +158,7 @@ export function UpdateCard() {
     if (!info) return;
     if (
       !window.confirm(
-        "前のバージョンに戻すに更新しますか？\n\n程序会重启，正在运行的任务会被中断。\n注意：数据库结构不会回退，旧版本可能无法识别新版写入的数据。",
+        "前のバージョンに戻すに更新しますか？\n\nプログラムが再起動し、実行中のタスクは中断されます。\n注意: データベースの構造は元に戻りません。旧バージョンでは、新バージョンが書き込んだデータを読み取れない場合があります。",
       )
     )
       return;
@@ -191,7 +191,7 @@ export function UpdateCard() {
           <DownloadIcon className="size-4" />
           バージョンと更新
         </CardTitle>
-        <CardDescription>从 GitHub 检查并安装新版本。更新後にプログラムが再起動し、実行中のタスクは中断されます。</CardDescription>
+        <CardDescription>GitHubで新しいバージョンを確認してインストールします。更新後にプログラムが再起動し、実行中のタスクは中断されます。</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -254,7 +254,7 @@ export function UpdateCard() {
         {info?.has_update && info.asset_available !== false && (
           <p className="text-xs text-muted-foreground">
             ダウンロードします <span className="font-mono">{info.asset}</span>
-            {info.size ? `（${humanSize(info.size)}）` : ""}，校验 SHA256 并冒烟测试后才会替换，失败自动保留現在のバージョン。
+            {info.size ? `（${humanSize(info.size)}）` : ""}。SHA256を検証し、簡易動作確認に成功した後で置き換えます。失敗した場合は現在のバージョンを維持します。
           </p>
         )}
 
