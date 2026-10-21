@@ -46,7 +46,7 @@ import { api } from "@/lib/api";
 import type { Agent, SkillItem, MCPServer, SkillCall, MissingSkill } from "@/lib/types";
 
 function fmtTime(ts?: string) {
-  if (!ts) return "从未调用";
+  if (!ts) return "未呼び出し";
   return new Date(ts).toLocaleString("zh-CN", {
     month: "2-digit",
     day: "2-digit",
@@ -177,23 +177,23 @@ function SkillsOverview({
   if (skills.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-sm text-muted-foreground">暂无 Skill，点击左侧「新建」或「上传压缩包」开始</p>
+        <p className="text-sm text-muted-foreground">Skillはありません。左側の「新規作成」または「ZIPをアップロード」から始めてください</p>
       </div>
     );
   }
 
   const stats: { label: string; value: React.ReactNode; hint?: string }[] = [
-    { label: "Skill 总数", value: skills.length, hint: `${agg.usedCount} 个被调用过` },
-    { label: "累计调用", value: agg.totalCalls },
-    { label: "未使用", value: agg.neverUsed.length, hint: agg.neverUsed.length > 0 ? "从未被任何 agent 加载" : "全部用过" },
-    { label: "未命中调用", value: agg.missingCalls, hint: missing.length > 0 ? `${missing.length} 个不存在的 skill` : "无" },
+    { label: "Skill数", value: skills.length, hint: `${agg.usedCount}件が呼び出し済み` },
+    { label: "累計呼び出し", value: agg.totalCalls },
+    { label: "未使用", value: agg.neverUsed.length, hint: agg.neverUsed.length > 0 ? "Agentに読み込まれたことがありません" : "すべて使用済み" },
+    { label: "未解決の呼び出し", value: agg.missingCalls, hint: missing.length > 0 ? `${missing.length}件の存在しないSkill` : "无" },
   ];
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
       <div>
-        <h2 className="text-base font-semibold">技能库总览</h2>
-        <p className="text-muted-foreground text-sm">选择左侧的 Skill 查看详情与调用记录，或从这里快速了解整体使用情况。</p>
+        <h2 className="text-base font-semibold">Skillライブラリの概要</h2>
+        <p className="text-muted-foreground text-sm">左側のSkillを選択して詳細や呼び出し履歴を確認するか、ここで全体の利用状況を確認できます。</p>
       </div>
 
       {/* 指标卡 */}
@@ -207,12 +207,12 @@ function SkillsOverview({
         ))}
       </div>
 
-      {/* 调用排行 */}
+      {/* 呼び出しランキング */}
       <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">调用排行</Label>
+        <Label className="text-xs text-muted-foreground">呼び出しランキング</Label>
         {agg.ranked.length === 0 ? (
           <p className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-xs">
-            还没有任何 Skill 调用记录。
+            Skillの呼び出し履歴はありません。
           </p>
         ) : (
           <div className="space-y-1.5">
@@ -240,11 +240,11 @@ function SkillsOverview({
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        {/* 最近调用 */}
+        {/* 最近の呼び出し */}
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">最近调用</Label>
+          <Label className="text-xs text-muted-foreground">最近の呼び出し</Label>
           {agg.recent.length === 0 ? (
-            <p className="text-muted-foreground text-xs">暂无记录。</p>
+            <p className="text-muted-foreground text-xs">記録はありません。</p>
           ) : (
             <div className="space-y-1">
               {agg.recent.map((s) => (
@@ -265,11 +265,11 @@ function SkillsOverview({
         {/* 未使用（可清理 / 需曝光） */}
         <div className="space-y-2">
           <Label className="text-xs text-muted-foreground">
-            未使用的 Skill
+            未使用のSkill
             {agg.neverUsed.length > 0 && <span className="ml-1 font-normal">（{agg.neverUsed.length}）</span>}
           </Label>
           {agg.neverUsed.length === 0 ? (
-            <p className="text-muted-foreground text-xs">所有 Skill 都被调用过。</p>
+            <p className="text-muted-foreground text-xs">すべてのSkillが呼び出されています。</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {agg.neverUsed.map((s) => (
@@ -334,8 +334,8 @@ export default function SkillsPage() {
   const [pendingDelete, setPendingDelete] = React.useState<PendingDelete>(null);
   const [deleting, setDeleting] = React.useState(false);
 
-  // 调用统计：列表页的次数/最近调用随 api.skills() 一起回来；选中某个 skill 时再拉它的
-  // 最近调用明细。missing = 被点名但不存在的 skill（想用但没有）。
+  // 呼び出し統計：列表页的次数/最近の呼び出し随 api.skills() 一起回来；选中某个 skill 时再拉它的
+  // 最近の呼び出し明细。missing = 被点名但不存在的 skill（想用但没有）。
   const [usageCalls, setUsageCalls] = React.useState<SkillCall[]>([]);
   const [usageLoading, setUsageLoading] = React.useState(false);
   const [missing, setMissing] = React.useState<MissingSkill[]>([]);
@@ -362,18 +362,18 @@ export default function SkillsPage() {
     setUploading(true);
     try {
       const r = await api.uploadSkill(file, overwrite);
-      toast.success(`已安装 Skill：${r.name}（${r.files} 个文件）`);
+      toast.success(`Skillをインストールしました: ${r.name}（${r.files} 个文件）`);
       load();
     } catch (e) {
       const msg = (e as Error).message;
       // offer overwrite when the skill already exists
-      if (!overwrite && msg.includes("已存在")) {
-        if (window.confirm(`${msg}\n\n是否覆盖同名 Skill？`)) {
+      if (!overwrite && msg.includes("既に存在します")) {
+        if (window.confirm(`${msg}\n\n同じ名前のSkillを上書きしますか？`)) {
           await uploadZip(file, true);
           return;
         }
       } else {
-        toast.error("上传失败：" + msg);
+        toast.error("アップロードに失敗しました: " + msg);
       }
     } finally {
       setUploading(false);
@@ -415,7 +415,7 @@ export default function SkillsPage() {
     setFileLoading(true);
     api.readSkillFile(selected.skill, selected.path)
       .then((c) => { setFileContent(c); setDirty(false); })
-      .catch(() => toast.error("读取文件失败"))
+      .catch(() => toast.error("ファイルの読み込みに失敗しました"))
       .finally(() => setFileLoading(false));
   }, [selected]);
 
@@ -469,17 +469,17 @@ export default function SkillsPage() {
     try {
       if (c.kind === "dir") {
         await api.createSkillDir(c.skill, fullPath);
-        toast.success(`已创建文件夹：${fullPath}`);
+        toast.success(`フォルダーを作成しました: ${fullPath}`);
         ensureExpanded(c.skill, fullPath);
       } else {
         await api.writeSkillFile(c.skill, fullPath, "");
-        toast.success(`已创建文件：${fullPath}`);
+        toast.success(`ファイルを作成しました: ${fullPath}`);
         setSelected({ skill: c.skill, path: fullPath });
         ensureExpanded(c.skill, c.inDir);
       }
       load();
     } catch (e) {
-      toast.error("创建失败：" + (e as Error).message);
+      toast.error("作成に失敗しました: " + (e as Error).message);
     }
   }
 
@@ -492,22 +492,22 @@ export default function SkillsPage() {
   async function deletePath(skill: string, path: string) {
     try {
       await api.deleteSkillPath(skill, path);
-      toast.success(`已删除：${path}`);
+      toast.success(`削除しました: ${path}`);
       if (selected?.skill === skill && selected.path === path) setSelected(null);
       load();
     } catch (e) {
-      toast.error("删除失败：" + (e as Error).message);
+      toast.error("削除に失敗しました: " + (e as Error).message);
     }
   }
 
   async function deleteSkill(name: string) {
     try {
       await api.deleteSkill(name);
-      toast.success(`已删除 Skill：${name}`);
+      toast.success(`Skillを削除しました: ${name}`);
       if (selected?.skill === name) setSelected(null);
       load();
     } catch (e) {
-      toast.error("删除失败：" + (e as Error).message);
+      toast.error("削除に失敗しました: " + (e as Error).message);
     }
   }
 
@@ -532,7 +532,7 @@ export default function SkillsPage() {
       toast.success("已保存");
       setDirty(false);
     } catch (e) {
-      toast.error("保存失败：" + (e as Error).message);
+      toast.error("保存に失敗しました: " + (e as Error).message);
     } finally { setSaving(false); }
   }
 
@@ -548,7 +548,7 @@ export default function SkillsPage() {
     } catch (e) {
       // roll back on error
       setDetailMcps(detailMcps);
-      toast.error("操作失败：" + (e as Error).message);
+      toast.error("操作に失敗しました: " + (e as Error).message);
     }
   }
 
@@ -560,13 +560,13 @@ export default function SkillsPage() {
       const ids = await api.skillVisibility(skillName);
       setVisibility((v) => ({ ...v, [skillName]: ids }));
     } catch (e) {
-      toast.error("操作失败：" + (e as Error).message);
+      toast.error("操作に失敗しました: " + (e as Error).message);
     }
   }
 
   async function createNewSkill() {
-    if (!newName.trim()) { toast.error("请填写 name"); return; }
-    if (!newDesc.trim()) { toast.error("description 为必填项"); return; }
+    if (!newName.trim()) { toast.error("nameを入力してください"); return; }
+    if (!newDesc.trim()) { toast.error("descriptionは必須です"); return; }
     setCreatingSkill(true);
     try {
       const name = newName.trim();
@@ -579,13 +579,13 @@ export default function SkillsPage() {
       });
       // apply initial visibility (fire-and-forget per agent; best-effort)
       await Promise.all(newVisibility.map((id) => api.toggleSkillVisibility(id, name, true)));
-      toast.success("已创建 Skill");
+      toast.success("Skillを作成しました");
       setNewOpen(false);
       setNewName(""); setNewDesc(""); setNewLicense(""); setNewCompat(""); setNewInst("");
       setNewMcps([]); setNewVisibility([]);
       load();
     } catch (e) {
-      toast.error("创建失败：" + (e as Error).message);
+      toast.error("作成に失敗しました: " + (e as Error).message);
     } finally { setCreatingSkill(false); }
   }
 
@@ -642,15 +642,15 @@ export default function SkillsPage() {
               <span className="min-w-0 flex-1 truncate" title={node.path}>{node.name}</span>
               {/* Absolute so a long name can never push the actions out of view */}
               <span className="absolute inset-y-0 right-1 hidden items-center gap-0.5 rounded bg-muted pl-1 group-hover:flex">
-                <Button size="icon" variant="ghost" className="size-5" title="新建文件"
+                <Button size="icon" variant="ghost" className="size-5" title="ファイルを新規作成"
                   onClick={(e) => { e.stopPropagation(); startCreate(skill, node.path, "file"); }}>
                   <FilePlusIcon className="size-3 text-muted-foreground" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-5" title="新建文件夹"
+                <Button size="icon" variant="ghost" className="size-5" title="ファイルを新規作成夹"
                   onClick={(e) => { e.stopPropagation(); startCreate(skill, node.path, "dir"); }}>
                   <FolderPlusIcon className="size-3 text-muted-foreground" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-5" title="删除文件夹"
+                <Button size="icon" variant="ghost" className="size-5" title="フォルダーを削除"
                   onClick={(e) => { e.stopPropagation(); setPendingDelete({ kind: "dir", skill, path: node.path }); }}>
                   <Trash2Icon className="size-3 text-destructive" />
                 </Button>
@@ -686,7 +686,7 @@ export default function SkillsPage() {
             isSelected ? "bg-accent" : "bg-muted",
           )}>
             <Button size="icon" variant="ghost" className="size-5"
-              title="删除文件"
+              title="ファイルを削除"
               onClick={(e) => { e.stopPropagation(); setPendingDelete({ kind: "file", skill, path: node.path }); }}>
               <Trash2Icon className="size-3 text-destructive" />
             </Button>
@@ -705,7 +705,7 @@ export default function SkillsPage() {
       <div className="flex items-center gap-3 border-b px-4 py-2.5 lg:px-6">
         <div className="flex flex-col gap-0.5">
           <h1 className="text-sm font-semibold leading-tight">Skill</h1>
-          <p className="text-muted-foreground text-xs">技能库 · agentskills.io 规范 · 按 Agent 授权可见</p>
+          <p className="text-muted-foreground text-xs">Skillライブラリ · agentskills.io仕様 · Agentごとに公開設定</p>
         </div>
         {/* 缺口清单：agent 点名调用、但库里没有的 skill —— 直接是该补什么的依据。 */}
         {missing.length > 0 && (
@@ -713,12 +713,12 @@ export default function SkillsPage() {
             <PopoverTrigger asChild>
               <Button size="sm" variant="outline" className="ml-auto">
                 <AlertTriangleIcon className="size-3.5 text-amber-500" />
-                {missing.length} 个未命中调用
+                {missing.length} 个未解決の呼び出し
               </Button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-80">
               <p className="mb-2 text-xs text-muted-foreground">
-                Agent 点名调用、但技能库里不存在的 skill。按被点名次数排序。
+                Agentから呼び出されたものの、ライブラリに存在しないSkillです。呼び出し回数順に表示します。
               </p>
               <div className="space-y-1">
                 {missing.map((m) => (
@@ -738,7 +738,7 @@ export default function SkillsPage() {
         <div className="flex w-64 shrink-0 flex-col border-r">
           <div className="flex flex-col gap-2 border-b p-2">
             <Button size="sm" variant="outline" className="w-full" onClick={() => setNewOpen(true)}>
-              <PlusIcon className="size-3.5" />新建 Skill
+              <PlusIcon className="size-3.5" />Skillを新規作成
             </Button>
             <input
               ref={uploadRef}
@@ -753,10 +753,10 @@ export default function SkillsPage() {
               className="w-full"
               disabled={uploading}
               onClick={() => uploadRef.current?.click()}
-              title="上传包含 SKILL.md 的 .zip 压缩包"
+              title="SKILL.mdを含む.zipファイルをアップロード"
             >
               <UploadIcon className="size-3.5" />
-              {uploading ? "上传中…" : "上传压缩包"}
+              {uploading ? "アップロード中…" : "ZIPをアップロード"}
             </Button>
           </div>
           {/* Radix viewport wraps children in a display:table div that grows with
@@ -799,11 +799,11 @@ export default function SkillsPage() {
                         "absolute inset-y-0 right-1 hidden items-center gap-0.5 rounded pl-1 group-hover:flex",
                         isSkillSelected ? "bg-accent" : "bg-muted",
                       )}>
-                        <Button size="icon" variant="ghost" className="size-5" title="新建文件"
+                        <Button size="icon" variant="ghost" className="size-5" title="ファイルを新規作成"
                           onClick={(e) => { e.stopPropagation(); startCreate(s.name, "", "file"); }}>
                           <FilePlusIcon className="size-3 text-muted-foreground" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="size-5" title="新建文件夹"
+                        <Button size="icon" variant="ghost" className="size-5" title="ファイルを新規作成夹"
                           onClick={(e) => { e.stopPropagation(); startCreate(s.name, "", "dir"); }}>
                           <FolderPlusIcon className="size-3 text-muted-foreground" />
                         </Button>
@@ -827,7 +827,7 @@ export default function SkillsPage() {
               })}
 
               {skills.length === 0 && (
-                <p className="p-3 text-xs text-muted-foreground">暂无 Skill，点击「新建」开始</p>
+                <p className="p-3 text-xs text-muted-foreground">Skillはありません。「新規作成」から始めてください</p>
               )}
             </div>
           </ScrollArea>
@@ -860,39 +860,39 @@ export default function SkillsPage() {
                 </div>
               </div>
 
-              {/* 左右分栏：配置（MCP/可见性）在左为主，调用统计在右为辅。
+              {/* 左右分栏：配置（MCP/可见性）在左为主，呼び出し統計在右为辅。
                   lg 以下放不下时用 flex-row-reverse 回落到单列——统计因 DOM 顺序在前，
                   窄屏时自然落到配置上方（与改版前的上下顺序一致）。 */}
               <div className="flex flex-col gap-6 lg:flex-row-reverse lg:items-start">
-                {/* ── 右侧：调用统计 ── */}
+                {/* ── 右侧：呼び出し統計 ── */}
                 <div className="space-y-2 lg:w-80 lg:shrink-0">
-                  <Label className="text-xs text-muted-foreground">调用统计</Label>
+                  <Label className="text-xs text-muted-foreground">呼び出し統計</Label>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-md border p-2">
                       <p className="text-lg font-semibold tabular-nums">{selectedSkill.calls}</p>
-                      <p className="text-xs text-muted-foreground">总调用次数</p>
+                      <p className="text-xs text-muted-foreground">呼び出し総数</p>
                     </div>
                     <div className="rounded-md border p-2">
                       <p className="text-lg font-semibold tabular-nums">{selectedSkill.tasks}</p>
-                      <p className="text-xs text-muted-foreground">覆盖任务数</p>
+                      <p className="text-xs text-muted-foreground">対象タスク数</p>
                     </div>
                     <div className="rounded-md border p-2">
                       <p className="truncate text-sm font-medium" title={fmtTime(selectedSkill.last_used)}>
                         {fmtTime(selectedSkill.last_used)}
                       </p>
-                      <p className="text-xs text-muted-foreground">最近调用</p>
+                      <p className="text-xs text-muted-foreground">最近の呼び出し</p>
                     </div>
                   </div>
                   {selectedSkill.usage_agents.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1">
-                      <span className="text-xs text-muted-foreground">调用方：</span>
+                      <span className="text-xs text-muted-foreground">呼び出し元:</span>
                       {selectedSkill.usage_agents.map((k) => (
                         <Badge key={k} variant="secondary" className="text-xs font-normal">{k}</Badge>
                       ))}
                     </div>
                   )}
                   {usageLoading ? (
-                    <p className="text-xs text-muted-foreground">加载调用明细…</p>
+                    <p className="text-xs text-muted-foreground">呼び出し詳細を読み込み中…</p>
                   ) : usageCalls.length > 0 ? (
                     <div className="rounded-md border">
                       <div className="border-b px-2 py-1 text-xs text-muted-foreground">最近 {usageCalls.length} 次调用</div>
@@ -902,26 +902,26 @@ export default function SkillsPage() {
                             <span className="tabular-nums text-muted-foreground">{fmtTime(c.ts)}</span>
                             <Badge variant="outline" className="font-normal">{c.agent_key || "—"}</Badge>
                             <span className="ml-auto text-muted-foreground">
-                              {c.task_id > 0 ? `任务 #${c.task_id}` : c.session_id ? "对话会话" : "—"}
+                              {c.task_id > 0 ? `任务 #${c.task_id}` : c.session_id ? "チャットセッション" : "—"}
                             </span>
                           </div>
                         ))}
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">还没有调用记录。</p>
+                    <p className="text-xs text-muted-foreground">呼び出し履歴はありません。</p>
                   )}
                 </div>
 
-                {/* ── 左侧：关联 MCP + 可见性 ── */}
+                {/* ── 左侧：MCPの関連付け + 可见性 ── */}
                 <div className="space-y-5 lg:min-w-0 lg:flex-1">
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
-                      关联 MCP
-                      <span className="ml-1 font-normal">（加载 Skill 时才披露/解锁其工具）</span>
+                      MCPの関連付け
+                      <span className="ml-1 font-normal">（Skillの読み込み時にのみ、そのツールを公開・有効化します）</span>
                     </Label>
                     {mcpOptions.length === 0 ? (
-                      <p className="text-xs text-muted-foreground">暂无 MCP，可在「MCP」页添加。</p>
+                      <p className="text-xs text-muted-foreground">MCPはありません。「MCP」画面から追加できます。</p>
                     ) : (
                       <div className="flex flex-wrap gap-x-4 gap-y-2">
                         {mcpOptions.map((m) => (
@@ -938,7 +938,7 @@ export default function SkillsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">可见性（按 Agent 授权）</Label>
+                    <Label className="text-xs text-muted-foreground">公開範囲（Agentごとに許可）</Label>
                     <div className="space-y-2">
                       {agents.map((a) => (
                         <label key={a.key} className="flex cursor-pointer items-center gap-2 text-sm">
@@ -950,7 +950,7 @@ export default function SkillsPage() {
                         </label>
                       ))}
                       {agents.length === 0 && (
-                        <span className="text-xs text-muted-foreground">（暂无 Agent）</span>
+                        <span className="text-xs text-muted-foreground">（Agentはありません）</span>
                       )}
                     </div>
                   </div>
@@ -988,16 +988,16 @@ export default function SkillsPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {pendingDelete?.kind === "skill" && `删除 Skill「${pendingDelete.skill}」？`}
-              {pendingDelete?.kind === "dir" && `删除文件夹「${pendingDelete.path}」？`}
-              {pendingDelete?.kind === "file" && `删除文件「${pendingDelete.path}」？`}
+              {pendingDelete?.kind === "skill" && `Skill「${pendingDelete.skill}」を削除しますか？`}
+              {pendingDelete?.kind === "dir" && `フォルダーを削除「${pendingDelete.path}」を削除しますか？`}
+              {pendingDelete?.kind === "file" && `ファイルを削除「${pendingDelete.path}」を削除しますか？`}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDelete?.kind === "skill"
-                ? "将删除该 Skill 的全部文件、MCP 关联与可见性配置。此操作不可撤销。"
+                ? "このSkillのすべてのファイル、MCPとの関連付け、公開設定を削除します。この操作は取り消せません。"
                 : pendingDelete?.kind === "dir"
-                  ? "将一并删除该文件夹下的所有文件。此操作不可撤销。"
-                  : "此操作不可撤销。"}
+                  ? "フォルダー内のすべてのファイルも削除されます。この操作は取り消せません。"
+                  : "この操作は取り消せません。"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1006,23 +1006,23 @@ export default function SkillsPage() {
               disabled={deleting}
               onClick={(e) => { e.preventDefault(); void runPendingDelete(); }}
             >
-              {deleting ? "删除中…" : "删除"}
+              {deleting ? "削除中…" : "删除"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── 新建 Skill 对话框 ── */}
+      {/* ── Skillを新規作成 对话框 ── */}
       <Sheet open={newOpen} onOpenChange={setNewOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 data-[side=right]:sm:max-w-xl">
           <SheetHeader className="px-4 pt-4">
-            <SheetTitle>新建 Skill</SheetTitle>
+            <SheetTitle>Skillを新規作成</SheetTitle>
           </SheetHeader>
           <Tabs defaultValue="basic" className="flex min-h-0 flex-1 flex-col">
             <TabsList className="mx-4 mt-3 shrink-0 justify-start">
-              <TabsTrigger value="basic">基本信息</TabsTrigger>
+              <TabsTrigger value="basic">基本情報</TabsTrigger>
               <TabsTrigger value="mcp">
-                关联 MCP
+                MCPの関連付け
                 {newMcps.length > 0 && (
                   <span className="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] leading-none text-primary-foreground">
                     {newMcps.length}
@@ -1039,17 +1039,17 @@ export default function SkillsPage() {
               </TabsTrigger>
             </TabsList>
 
-            {/* 基本信息 */}
+            {/* 基本情報 */}
             <TabsContent value="basic" className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 pb-4 pt-4 data-[state=inactive]:hidden">
               <div className="grid gap-1.5">
                 <Label htmlFor="sk-name">名称 <span className="text-destructive">*</span></Label>
                 <Input id="sk-name" placeholder="sqli-deepdive" value={newName} onChange={(e) => setNewName(e.target.value)} />
-                <p className="text-muted-foreground text-xs">小写字母 / 数字 / 连字符，1–64 字符</p>
+                <p className="text-muted-foreground text-xs">小文字・数字・ハイフンを使用（1～64文字）</p>
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="sk-desc">描述 <span className="text-destructive">*</span></Label>
                 <Textarea id="sk-desc" rows={2} className="resize-none"
-                  placeholder="这个 skill 做什么、何时使用。"
+                  placeholder="Skillの役割と使用する場面を入力してください。"
                   value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -1059,23 +1059,23 @@ export default function SkillsPage() {
                 </div>
                 <div className="grid gap-1.5">
                   <Label className="text-muted-foreground text-xs">compatibility</Label>
-                  <Input placeholder="需要 sqlmap、python3" value={newCompat} onChange={(e) => setNewCompat(e.target.value)} />
+                  <Input placeholder="例: sqlmap、python3が必要" value={newCompat} onChange={(e) => setNewCompat(e.target.value)} />
                 </div>
               </div>
               <div className="flex min-h-0 flex-1 flex-col gap-1.5">
-                <Label htmlFor="sk-inst">正文 <span className="text-muted-foreground text-xs font-normal">（留空自动生成骨架）</span></Label>
+                <Label htmlFor="sk-inst">本文 <span className="text-muted-foreground text-xs font-normal">（空欄の場合はひな形を自動生成）</span></Label>
                 <Textarea id="sk-inst"
                   className="min-h-40 flex-1 resize-none font-mono text-sm leading-relaxed"
-                  placeholder={"## 执行方法\n\n1. 先探测错误\n2. 区分盲注类型\n\n脚本放 scripts/ 目录。"}
+                  placeholder={"## 执行方法\n\n1. まずエラーを確認\n2. ブラインドインジェクションの種類を特定\n\nスクリプトはscripts/ディレクトリに配置します。"}
                   value={newInst} onChange={(e) => setNewInst(e.target.value)} />
               </div>
             </TabsContent>
 
-            {/* 关联 MCP */}
+            {/* MCPの関連付け */}
             <TabsContent value="mcp" className="overflow-y-auto px-4 pb-4 pt-4 data-[state=inactive]:hidden">
-              <p className="mb-3 text-xs text-muted-foreground">加载 Skill 时才披露并解锁所选 MCP 的工具。</p>
+              <p className="mb-3 text-xs text-muted-foreground">Skillの読み込み時に、選択したMCPのツールを公開して使用可能にします。</p>
               {mcpOptions.length === 0 ? (
-                <p className="text-xs text-muted-foreground">暂无 MCP，可在「MCP」页添加。</p>
+                <p className="text-xs text-muted-foreground">MCPはありません。「MCP」画面から追加できます。</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {mcpOptions.map((m) => (
@@ -1095,9 +1095,9 @@ export default function SkillsPage() {
 
             {/* 可见性 */}
             <TabsContent value="visibility" className="overflow-y-auto px-4 pb-4 pt-4 data-[state=inactive]:hidden">
-              <p className="mb-3 text-xs text-muted-foreground">选中的 Agent 创建后即可见此 Skill。</p>
+              <p className="mb-3 text-xs text-muted-foreground">選択したAgentは作成後にこのSkillを利用できます。</p>
               {agents.length === 0 ? (
-                <p className="text-xs text-muted-foreground">（暂无 Agent）</p>
+                <p className="text-xs text-muted-foreground">（Agentはありません）</p>
               ) : (
                 <div className="flex flex-col gap-2">
                   {agents.map((a) => (

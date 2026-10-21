@@ -1,25 +1,25 @@
 // 渠道字段表与配置值的解析工具。
 //
-// 与页面拆开是因为这一份是**数据**而不是视图：它描述每种渠道有哪些字段、
+// 与页面拆开是因为这一份是**数据**を使用してください。视图：它描述每种渠道有哪些字段、
 // 各自该用什么控件，以及表单文本到配置值（JSON）的双向转换。
 // 单独放一个文件后，新增渠道只需要动这里，页面本身不必改。
 // 渠道类型的展示名与简介。放在前端是因为它只影响文案，后端不需要知道。
 export const KIND_LABEL: Record<string, string> = {
-  dingtalk: "钉钉",
-  feishu: "飞书",
-  wecom: "企业微信",
+  dingtalk: "DingTalk",
+  feishu: "Feishu",
+  wecom: "WeCom",
   webhook: "通用 Webhook",
   telegram: "Telegram",
-  email: "邮件",
+  email: "メール",
 };
 
 // 各渠道的配置字段定义。
 //
-// 这里刻意保留一份前端字段表，而不是让后端下发 schema：后端只负责
+// 这里刻意保留一份前端字段表，を使用してください。让后端下发 schema：后端只负责
 // Validate（必填/格式），UI 需要的是布局与控件类型，两者关注的不是同一件事。
 // 唯一的耦合点是 secret_keys —— 哪些字段该渲染成密码框由后端给出，
-// 因为只有渠道实现自己清楚哪些值算凭据（企业微信的整个 Webhook 就是凭据，
-// 而钉钉的只是其中一个 secret）。新增渠道时这里少一个条目只会让表单变空白，
+// 因为只有渠道实现自己清楚哪些值算凭据（WeCom的整个 Webhook 就是凭据，
+// 而DingTalk的只是其中一个 secret）。新增渠道时这里少一个条目只会让表单变空白，
 // 不会静默出错（下面的 hasFields 会提示）。
 export type FieldKind = "text" | "password" | "number" | "select" | "textarea" | "switch" | "kv" | "list";
 export interface FieldDef {
@@ -34,56 +34,56 @@ export const CHANNEL_FIELDS: Record<string, FieldDef[]> = {
   dingtalk: [
     {
       key: "webhook",
-      label: "Webhook 地址",
+      label: "Webhook URL",
       kind: "text",
       placeholder: "https://oapi.dingtalk.com/robot/send?access_token=...",
     },
     {
       key: "secret",
-      label: "加签密钥",
+      label: "署名用Secret",
       kind: "password",
-      help: "机器人安全设置选「加签」时填写；选「自定义关键词」或未开启安全设置则留空",
+      help: "Botのセキュリティ設定で「署名」を選択した場合に入力します。「カスタムキーワード」またはセキュリティ設定なしの場合は空欄にします",
     },
   ],
   feishu: [
     {
       key: "webhook",
-      label: "Webhook 地址",
+      label: "Webhook URL",
       kind: "text",
       placeholder: "https://open.feishu.cn/open-apis/bot/v2/hook/...",
     },
-    { key: "secret", label: "签名校验密钥", kind: "password", help: "机器人开启「签名校验」时填写，否则留空" },
+    { key: "secret", label: "署名検証用Secret", kind: "password", help: "Botで「署名検証」を有効にした場合に入力します。それ以外は空欄にします" },
   ],
   wecom: [
     {
       key: "webhook",
-      label: "Webhook 地址",
+      label: "Webhook URL",
       kind: "text",
       placeholder: "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=...",
     },
   ],
   webhook: [
-    { key: "url", label: "目标 URL", kind: "text", placeholder: "https://your-endpoint.example.com/hook" },
+    { key: "url", label: "宛先URL", kind: "text", placeholder: "https://your-endpoint.example.com/hook" },
     {
       key: "method",
-      label: "请求方法",
+      label: "HTTPメソッド",
       kind: "select",
       options: [
-        { value: "POST", label: "POST（带请求体）" },
-        { value: "PUT", label: "PUT（带请求体）" },
-        { value: "PATCH", label: "PATCH（带请求体）" },
-        { value: "GET", label: "GET（不带请求体）" },
+        { value: "POST", label: "POST（リクエストボディあり）" },
+        { value: "PUT", label: "PUT（リクエストボディあり）" },
+        { value: "PATCH", label: "PATCH（リクエストボディあり）" },
+        { value: "GET", label: "GET（不リクエストボディあり）" },
       ],
     },
-    { key: "headers", label: "自定义请求头", kind: "kv", help: "每行 KEY=VALUE，例如 Authorization=Bearer xxx" },
+    { key: "headers", label: "カスタムリクエストヘッダー", kind: "kv", help: "1行にKEY=VALUEで入力します。例: Authorization=Bearer xxx" },
     {
       key: "body_template",
-      label: "请求体模板",
+      label: "リクエストボディのテンプレート",
       kind: "textarea",
       help:
-        "留空用内置默认模板。变量：{{.Title}} {{.Batch}} {{.Count}} {{.HomeURL}} {{.SentAt}}，" +
+        "空欄の場合は組み込みのテンプレートを使用します。変数: {{.Title}} {{.Batch}} {{.Count}} {{.HomeURL}} {{.SentAt}}，" +
         "以及 range .Items 下的 .Name/.VulnClass/.Severity/.Summary/.Assets/.DetailURL/.StatusLabel。" +
-        "插入字符串请用 {{json .Xxx}} 而不是 {{.Xxx}}，否则标题里的引号会破坏 JSON。",
+        "文字列の挿入には {{json .Xxx}} を使用してください。 {{.Xxx}}，使用するとタイトル内の引用符でJSONが壊れる場合があります。",
     },
   ],
   telegram: [
@@ -91,35 +91,35 @@ export const CHANNEL_FIELDS: Record<string, FieldDef[]> = {
     { key: "chat_id", label: "Chat ID", kind: "text", placeholder: "-1001234567890" },
     {
       key: "base_url",
-      label: "API 地址",
+      label: "API URL",
       kind: "text",
       placeholder: "https://api.telegram.org",
-      help: "留空用官方地址；自建 Bot API 反代时填写",
+      help: "空欄の場合は公式URLを使用します。独自のBot APIをProxy経由で利用する場合に入力します",
     },
   ],
   email: [
-    { key: "host", label: "SMTP 服务器", kind: "text", placeholder: "smtp.example.com" },
+    { key: "host", label: "SMTPサーバー", kind: "text", placeholder: "smtp.example.com" },
     {
       key: "port",
-      label: "端口",
+      label: "ポート",
       kind: "number",
       placeholder: "587",
-      help: "587 走 STARTTLS；465 请把「隐式 TLS」打开",
+      help: "587 走 STARTTLS；465 请把「暗黙的TLS」打开",
     },
-    { key: "username", label: "账号", kind: "text" },
-    { key: "password", label: "密码 / 授权码", kind: "password" },
-    { key: "from", label: "发件人", kind: "text", placeholder: "artex@example.com" },
-    { key: "to", label: "收件人", kind: "list", help: "多个地址用逗号分隔" },
-    { key: "tls", label: "隐式 TLS", kind: "switch", help: "465 端口打开；587 保持关闭（会自动 STARTTLS）" },
+    { key: "username", label: "アカウント", kind: "text" },
+    { key: "password", label: "パスワード / アプリパスワード", kind: "password" },
+    { key: "from", label: "送信元", kind: "text", placeholder: "artex@example.com" },
+    { key: "to", label: "宛先", kind: "list", help: "複数のアドレスはカンマで区切ります" },
+    { key: "tls", label: "暗黙的TLS", kind: "switch", help: "465 ポート打开；587 保持关闭（会自动 STARTTLS）" },
   ],
 };
 
 export const SEVERITY_OPTIONS = [
-  { value: "", label: "不限" },
-  { value: "low", label: "低危及以上" },
-  { value: "medium", label: "中危及以上" },
-  { value: "high", label: "高危及以上" },
-  { value: "critical", label: "仅严重" },
+  { value: "", label: "制限なし" },
+  { value: "low", label: "低以上" },
+  { value: "medium", label: "中以上" },
+  { value: "high", label: "高以上" },
+  { value: "critical", label: "重大のみ" },
 ];
 
 export type ChannelForm = {
